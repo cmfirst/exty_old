@@ -1,0 +1,388 @@
+<SCRIPT type="text/javascript">Ext.define('mainContainer', {
+    extend: 'Ext.container.Container',
+    alias: 'widget.mainContainer',
+    id: 'mainContainer',
+   renderTo:'content',autoShow:true,                
+    initComponent: function() {
+        var me = this;
+            Ext.applyIf(me, {                items:[]               
+            });
+        me.callParent(arguments);
+    }                , showLoadingMask: function(loadText)
+{
+         if (Ext.isEmpty(loadText)) loadText = 'Loading... Please wait';
+                   Ext.Ajax.on('beforerequest', function () {
+                   Ext.get('content').mask(loadText, 'loading')
+         }, Ext.get('content'));
+         Ext.Ajax.on('requestcomplete', Ext.get('content').unmask, Ext.get('content'));
+         Ext.Ajax.on('requestexception', Ext.get('content').unmask, Ext.get('content'));
+}});Ext.define('menuStore', {
+    extend: 'Ext.data.TreeStore', 
+   constructor: function(cfg) {
+        var me = this;
+        cfg = cfg || {};
+        me.callParent([Ext.apply({
+        storeId:'menuStore',fields:[                {
+                    name: 'actid',
+                    type:'auto'},                {
+                    name: 'actdesc',
+                    type:'auto'},                {
+                    name: 'actmodule',
+                    type:'auto'},                {
+                    name: 'actcontroller',
+                    type:'auto'},                {
+                    name: 'actaction',
+                    type:'auto'},                {
+                    name: 'acticon',
+                    type:'auto'},                {
+                    name: 'actvisible',
+                    type:'auto'},                {
+                    name: 'actparentid',
+                    type:'auto'},                {
+                    name: 'actorder',
+                    type:'auto'}],                proxy: {
+                    type: 'ajax',
+                    url: '/admin/menu/menuRequest',
+                    reader: {
+                        type: 'json',
+                        root:'children'
+                    },
+                    writer: {
+                        root:'update',
+                        encode:'true'
+                    }
+                },                            listeners: {
+                load: {
+                    fn: me.onStoreLoad,
+                    scope: me
+                }
+            },
+            autoLoad:true,
+            autoSync:false    
+        }, cfg)]);
+    },
+                       onStoreLoad: function(store, node, records, successful, eOpts){
+                    if(records.length==0)
+                        Ext.MessageBox.alert('Error','No record to display');
+                },
+           
+});Ext.define('parentAdd', {
+    extend: 'Ext.form.Panel',
+    alias: 'widget.parentAdd',
+    id: 'parentAdd',
+   border:0,
+   bodyPadding:10,                layout: {
+                    type:'auto'
+                },                title:'Aggiungi Voce',url: 'indexRequest',                title:'',defaults:{padding: 5,labelWidth: 70,labelWidth: 100},                
+    initComponent: function() {
+        var me = this;
+            Ext.applyIf(me, {                items:[                {
+                    xtype: 'textfield',
+                    fieldLabel: 'Text',
+                    flex: 1,
+                    anchor:'100%',
+                    name: 'actdesc',
+                    id: 'actdesc'
+                    },                {
+                    xtype: 'numberfield',
+                    fieldLabel: 'Ordine',
+                    flex: 1,
+                    anchor:'100%',
+                    name: 'actorder',
+                    id: 'actorder'
+                                        ,hideTrigger: true,
+                    decimalSeparator: ','},                {
+                    xtype: 'numberfield',
+                    fieldLabel: 'Visibile',
+                    flex: 1,
+                    anchor:'100%',
+                    name: 'actvisible',
+                    id: 'actvisible'
+                                        ,hideTrigger: true,
+                    decimalSeparator: ','},                {
+                    xtype: 'button',
+                    text: 'Aggiungi',
+                    iconCls: 'icon-submit',
+                    handler: function(button, e, eOpts){
+                        me.onAggiungiClick(button, e, eOpts);
+                    }}]               
+            });
+        me.callParent(arguments);
+    }                ,onAggiungiClick:function(button, e){
+                                            this.showLoadingMask('esecuzione accesso');
+                        var form=button.up("form");
+                        var winId='win'+form.getId();
+                        form.submit({
+                            success: function (form, action){
+                                if(!action.result.hasOwnProperty('title'))
+                                    action.result.title='Ok';
+                                if(!action.result.hasOwnProperty('text'))
+                                    action.result.text='Record aggiornato';
+                                Ext.MessageBox.alert(action.result.title, action.result.text, function(){
+                                    if(action.result.success==true){
+                                        form.reset();
+                                        if(Ext.getCmp(winId)){
+                                            var win=Ext.getCmp(winId);
+                                            win.close();
+                                            win.destroy();
+                                            form.destroy();
+                                        }else if(action.result.redirectUrl)
+                                                location.href=action.result.redirectUrl;
+                                        else
+                                                window.history.back(-1);
+                                        }
+                                });
+                            },
+                            failure: function (form, action){
+                                if(!action.result.hasOwnProperty('title'))
+                                    action.result.title='Errore';
+                                if(!action.result.hasOwnProperty('text'))
+                                    action.result.text='Record non aggiornato';
+                                Ext.MessageBox.alert(action.result.title, action.result.text);
+                            }
+                        });
+            }                , showLoadingMask: function(loadText)
+{
+         if (Ext.isEmpty(loadText)) loadText = 'Loading... Please wait';
+                   Ext.Ajax.on('beforerequest', function () {
+                   Ext.get('content').mask(loadText, 'loading')
+         }, Ext.get('content'));
+         Ext.Ajax.on('requestcomplete', Ext.get('content').unmask, Ext.get('content'));
+         Ext.Ajax.on('requestexception', Ext.get('content').unmask, Ext.get('content'));
+}});Ext.define('childAdd', {
+    extend: 'Ext.form.Panel',
+    alias: 'widget.childAdd',
+    id: 'childAdd',
+   border:0,
+   bodyPadding:10,                layout: {
+                    type:'auto'
+                },                title:'Aggiungi Voce',url: 'indexRequest',                title:'',defaults:{padding: 5,labelWidth: 70,labelWidth: 100},                
+    initComponent: function() {
+        var me = this;
+            Ext.applyIf(me, {                items:[                {
+                    xtype: 'textfield',
+                    fieldLabel: 'Text',
+                    flex: 1,
+                    anchor:'100%',
+                    name: 'actdesc',
+                    id: 'actdesc'
+                    },                {
+                    xtype: 'numberfield',
+                    fieldLabel: 'Ordine',
+                    flex: 1,
+                    anchor:'100%',
+                    name: 'actorder',
+                    id: 'actorder'
+                                        ,hideTrigger: true,
+                    decimalSeparator: ','},                {
+                    xtype: 'numberfield',
+                    fieldLabel: 'Visibile',
+                    flex: 1,
+                    anchor:'100%',
+                    name: 'actvisible',
+                    id: 'actvisible'
+                                        ,hideTrigger: true,
+                    decimalSeparator: ','},                {
+                    xtype: 'textfield',
+                    fieldLabel: 'Modulo',
+                    flex: 1,
+                    anchor:'100%',
+                    name: 'actmodule',
+                    id: 'actmodule'
+                    },                {
+                    xtype: 'textfield',
+                    fieldLabel: 'Controller',
+                    flex: 1,
+                    anchor:'100%',
+                    name: 'actcontroller',
+                    id: 'actcontroller'
+                    },                {
+                    xtype: 'textfield',
+                    fieldLabel: 'Action',
+                    flex: 1,
+                    anchor:'100%',
+                    name: 'actaction',
+                    id: 'actaction'
+                    },                {
+                    xtype: 'button',
+                    text: 'Aggiungi',
+                    iconCls: 'icon-submit',
+                    handler: function(button, e, eOpts){
+                        me.onAggiungiClick(button, e, eOpts);
+                    }}]               
+            });
+        me.callParent(arguments);
+    }                ,onAggiungiClick:function(button, e){
+                                            this.showLoadingMask('esecuzione accesso');
+                        var form=button.up("form");
+                        var winId='win'+form.getId();
+                        form.submit({
+                            success: function (form, action){
+                                if(!action.result.hasOwnProperty('title'))
+                                    action.result.title='Ok';
+                                if(!action.result.hasOwnProperty('text'))
+                                    action.result.text='Record aggiornato';
+                                Ext.MessageBox.alert(action.result.title, action.result.text, function(){
+                                    if(action.result.success==true){
+                                        form.reset();
+                                        if(Ext.getCmp(winId)){
+                                            var win=Ext.getCmp(winId);
+                                            win.close();
+                                            win.destroy();
+                                            form.destroy();
+                                        }else if(action.result.redirectUrl)
+                                                location.href=action.result.redirectUrl;
+                                        else
+                                                window.history.back(-1);
+                                        }
+                                });
+                            },
+                            failure: function (form, action){
+                                if(!action.result.hasOwnProperty('title'))
+                                    action.result.title='Errore';
+                                if(!action.result.hasOwnProperty('text'))
+                                    action.result.text='Record non aggiornato';
+                                Ext.MessageBox.alert(action.result.title, action.result.text);
+                            }
+                        });
+            }                , showLoadingMask: function(loadText)
+{
+         if (Ext.isEmpty(loadText)) loadText = 'Loading... Please wait';
+                   Ext.Ajax.on('beforerequest', function () {
+                   Ext.get('content').mask(loadText, 'loading')
+         }, Ext.get('content'));
+         Ext.Ajax.on('requestcomplete', Ext.get('content').unmask, Ext.get('content'));
+         Ext.Ajax.on('requestexception', Ext.get('content').unmask, Ext.get('content'));
+}});Ext.define('menuToolbar', {
+    extend: 'Ext.toolbar.Toolbar',
+    alias: 'widget.menuToolbar',
+    id: 'menuToolbar',                dock:'top',                
+    initComponent: function() {
+        var me = this;
+            Ext.applyIf(me, {                items:[                {
+                    xtype: 'button',
+                    text: 'New parent',
+                    iconCls: 'icon-add',
+                    handler: function(button, e, eOpts){
+                        me.onNewparentClick(button, e, eOpts);
+                    }},                {
+                    xtype: 'button',
+                    text: 'New child',
+                    iconCls: 'icon-add',
+                    handler: function(button, e, eOpts){
+                        me.onNewchildClick(button, e, eOpts);
+                    }}]               
+            });
+        me.callParent(arguments);
+    }                ,onNewparentClick:function(button, e){
+                                     var parentAdd=Ext.create('parentAdd');
+                 var winparentAdd=Ext.create('Ext.window.Window',{
+//                    width: 350,
+//                    height:400,
+                    title: 'Aggiungi Voce',
+                    id: 'winparentAdd',
+                    layout: {type: 'fit'},
+//                    y: 100, x:100,
+                    autoShow:true
+                    });
+                 winparentAdd.add(parentAdd);
+            }                ,onNewchildClick:function(button, e){
+                                     var childAdd=Ext.create('childAdd');
+                 var winchildAdd=Ext.create('Ext.window.Window',{
+//                    width: 350,
+//                    height:400,
+                    title: 'Aggiungi Voce',
+                    id: 'winchildAdd',
+                    layout: {type: 'fit'},
+//                    y: 100, x:100,
+                    autoShow:true
+                    });
+                 winchildAdd.add(childAdd);
+            }                , showLoadingMask: function(loadText)
+{
+         if (Ext.isEmpty(loadText)) loadText = 'Loading... Please wait';
+                   Ext.Ajax.on('beforerequest', function () {
+                   Ext.get('content').mask(loadText, 'loading')
+         }, Ext.get('content'));
+         Ext.Ajax.on('requestcomplete', Ext.get('content').unmask, Ext.get('content'));
+         Ext.Ajax.on('requestexception', Ext.get('content').unmask, Ext.get('content'));
+}});Ext.define('menu', {
+    extend: 'Ext.tree.Panel',
+    alias: 'widget.menu',
+    id: 'menu',store: 'menuStore',forceFit:true,rootVisible:false,                
+    initComponent: function() {
+        var me = this;
+            Ext.applyIf(me, {                columns:[                {
+                    xtype: 'treecolumn',
+                    text: 'Menu',
+                    dataIndex: 'actdesc'                ,editor: {
+                        xtype: 'textfield',
+                        allowBlank: true,
+                        msgTarget: 'title'}},                {
+                    xtype: 'gridcolumn',
+                    text: 'Visible',
+                    dataIndex: 'actvisible'                ,editor: {
+                        xtype: 'textfield',
+                        allowBlank: true,
+                        msgTarget: 'title'}}]                ,                    plugins: [
+                        Ext.create('Ext.grid.plugin.RowEditing', {
+                            saveBtnText: 'Aggiorna',
+                            cancelBtnText: 'Annulla'
+                        })
+                    ],listeners:{                    sortchange: {
+                        fn: me.onSortChange,
+                        scope: me
+                    }},dockedItems:[                {
+                    xtype: 'menuToolbar'
+                }]               
+            });
+        me.callParent(arguments);
+    }                ,onSortChange: function(ct, column, direction, eOpts) {
+                    var store=Ext.getStore('menuStore');
+                    var params={};
+                    params.property=column.dataIndex;
+                    params.direction=direction;
+                    var json='['+JSON.stringify(params)+']';
+                    store.load({
+                        params:{
+                            sort:json
+
+                        }
+                    });
+                }              ,onTreeViewDragDropDrop: function(node,data,overModel,dropPosition, eOpts){
+                    var store=Ext.getStore('menuStore');
+                    var elementMoved=JSON.stringify(data.records[0].data);
+                    var targetElement=JSON.stringify(overModel.data);
+                    var proxy=store.getProxy();
+                    var url=proxy.url;
+                    Ext.Ajax.request({
+                        method: 'POST',
+                        url: url,
+                        params:{
+                            elementMoved: elementMoved,
+                            targetElement: targetElement,
+                            action: dropPosition
+                        },
+                        
+                        failure: function (response,eOps){
+                            Ext.MessageBox.alert('Connection error','Error');
+                        },
+                        success: function (response){
+                            if(!response.responseText.success)
+                            console.log('no');
+                            else
+                            console.log(response.responseText.msg);
+                        }
+                    });
+                    store.load();
+                }                  , showLoadingMask: function(loadText)
+{
+         if (Ext.isEmpty(loadText)) loadText = 'Loading... Please wait';
+                   Ext.Ajax.on('beforerequest', function () {
+                   Ext.get('content').mask(loadText, 'loading')
+         }, Ext.get('content'));
+         Ext.Ajax.on('requestcomplete', Ext.get('content').unmask, Ext.get('content'));
+         Ext.Ajax.on('requestexception', Ext.get('content').unmask, Ext.get('content'));
+}});Ext.onReady(function(){
+                var mainContainer=Ext.create('mainContainer');
+                var menuStore=Ext.create('menuStore');var parentAdd=Ext.create('parentAdd');var childAdd=Ext.create('childAdd');var menuToolbar=Ext.create('menuToolbar');var menu=Ext.create('menu');var mainContainer=Ext.create('mainContainer');mainContainer.add(menu);});</SCRIPT>
